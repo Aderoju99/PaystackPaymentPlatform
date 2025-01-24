@@ -1,0 +1,6 @@
+@PaystackPaymentPlatform_HostAddress = http://localhost:5116
+
+GET {{PaystackPaymentPlatform_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
