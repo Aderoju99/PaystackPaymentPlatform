@@ -21,10 +21,19 @@ namespace PaystackPaymentPlatform.Services
         public async Task<string> InitializePaymentAsync(string email, decimal amount)
         {
             var request = new RestRequest("transaction/initialize", Method.Post);
-            request.AddHeader("Authorization", $"Bearer {_configuration["Paystack:SecretKey"]}");
+
+            var secretKey = _configuration["Paystack:SecretKey"];
+            if (string.IsNullOrWhiteSpace(secretKey))
+                throw new Exception("Paystack SecretKey is missing in configuration.");
+
+            request.AddHeader("Authorization", $"Bearer {secretKey}");
+
             request.AddJsonBody(new { email, amount = amount * 100 });
 
+            Console.WriteLine($"Initializing payment for Email: {email}, Amount: {amount * 100}");
+
             var response = await _client.ExecuteAsync<PaystackResponse>(request);
+
             if (response.Data?.Status == true)
             {
                 var payment = new Payment
@@ -41,15 +50,24 @@ namespace PaystackPaymentPlatform.Services
                 return response.Data.Data.AuthorizationUrl;
             }
 
+            Console.WriteLine($"Paystack Initialization Error: {response.Content}");
             throw new Exception("Failed to initialize payment");
         }
 
         public async Task<bool> VerifyPaymentAsync(string reference)
         {
             var request = new RestRequest($"transaction/verify/{reference}", Method.Get);
-            request.AddHeader("Authorization", $"Bearer {_configuration["Paystack:SecretKey"]}");
+
+            var secretKey = _configuration["Paystack:SecretKey"];
+            if (string.IsNullOrWhiteSpace(secretKey))
+                throw new Exception("Paystack SecretKey is missing in configuration.");
+
+            request.AddHeader("Authorization", $"Bearer {secretKey}");
+
+            Console.WriteLine($"Verifying payment with Reference: {reference}");
 
             var response = await _client.ExecuteAsync<PaystackResponse>(request);
+
             if (response.Data?.Status == true && response.Data.Data.Status == "success")
             {
                 var payment = await _context.Payments.FirstOrDefaultAsync(p => p.Reference == reference);
@@ -61,6 +79,7 @@ namespace PaystackPaymentPlatform.Services
                 return true;
             }
 
+            Console.WriteLine($"Paystack Verification Error: {response.Content}");
             return false;
         }
     }

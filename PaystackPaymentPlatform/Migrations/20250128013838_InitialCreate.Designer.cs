@@ -12,7 +12,7 @@ using PaystackPaymentPlatform.Data;
 namespace PaystackPaymentPlatform.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250124163856_InitialCreate")]
+    [Migration("20250128013838_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
